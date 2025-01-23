@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -8,9 +8,16 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Item, Scroll } from "@/types/maple";
-import { X } from "lucide-react";
+import { Item, Scroll, ItemStats } from "@/types/maple";
+import { X, Plus } from "lucide-react";
 import { items } from "@/data/mapleData";
+import { formatNumber } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+const AVAILABLE_STATS = [
+  "str", "dex", "int", "luk", "watk", "matk", "def", "mdef",
+  "hp", "mp", "acc", "avoid", "speed", "jump"
+] as const;
 
 interface ItemSelectorProps {
   selectedItem: Item | null;
@@ -23,11 +30,17 @@ export const ItemSelector = ({
   onSelect,
   selectedScrolls,
 }: ItemSelectorProps) => {
+  const [additionalStats, setAdditionalStats] = useState<string[]>([]);
   const filteredItems = selectedScrolls.length > 0
     ? items.filter(item => 
         selectedScrolls.some(scroll => scroll.type === item.type)
       )
     : items;
+
+  const availableStats = AVAILABLE_STATS.filter(stat => 
+    !selectedItem?.stats[stat as keyof ItemStats] && 
+    !additionalStats.includes(stat)
+  );
 
   return (
     <div className="space-y-4">
@@ -48,10 +61,11 @@ export const ItemSelector = ({
         onValueChange={(value) => {
           const item = items.find((i) => i.id === value);
           onSelect(item || null);
+          setAdditionalStats([]);
         }}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Choose an item" />
+          <SelectValue placeholder="Select item" />
         </SelectTrigger>
         <SelectContent>
           {filteredItems.map((item) => (
@@ -81,22 +95,66 @@ export const ItemSelector = ({
                 </Label>
                 <Input
                   id={`stat-${stat}`}
-                  type="number"
-                  value={value}
+                  type="text"
+                  value={formatNumber(value)}
                   onChange={(e) => {
+                    const newValue = e.target.value.replace(/[^0-9]/g, '');
+                    // Implement stat override logic
+                  }}
+                />
+              </div>
+            ))}
+            {additionalStats.map(stat => (
+              <div key={stat} className="space-y-2">
+                <Label htmlFor={`stat-${stat}`}>
+                  {stat.toUpperCase()}
+                </Label>
+                <Input
+                  id={`stat-${stat}`}
+                  type="text"
+                  defaultValue="0"
+                  onChange={(e) => {
+                    const newValue = e.target.value.replace(/[^0-9]/g, '');
                     // Implement stat override logic
                   }}
                 />
               </div>
             ))}
           </div>
+
+          {availableStats.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const select = window.prompt(
+                  "Select a stat to add:\n" + 
+                  availableStats.map((s, i) => `${i + 1}. ${s.toUpperCase()}`).join('\n')
+                );
+                if (select) {
+                  const index = parseInt(select) - 1;
+                  if (availableStats[index]) {
+                    setAdditionalStats([...additionalStats, availableStats[index]]);
+                  }
+                }
+              }}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Stat
+            </Button>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="item-cost">Item Cost (Mesos)</Label>
             <Input
               id="item-cost"
-              type="number"
+              type="text"
               placeholder="Enter cost in mesos"
+              onChange={(e) => {
+                const newValue = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = formatNumber(newValue);
+              }}
             />
           </div>
         </div>

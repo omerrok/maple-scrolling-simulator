@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Item, Scroll } from "@/types/maple";
 import { X } from "lucide-react";
 import { scrolls } from "@/data/mapleData";
+import { formatNumber } from "@/lib/utils";
 
 interface ScrollSelectorProps {
   selectedScrolls: Scroll[];
@@ -44,7 +45,7 @@ export const ScrollSelector = ({
       
       <Select onValueChange={handleScrollSelect}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Choose scrolls" />
+          <SelectValue placeholder="Select scroll" />
         </SelectTrigger>
         <SelectContent>
           {filteredScrolls.map((scroll) => (
@@ -88,12 +89,16 @@ export const ScrollSelector = ({
                 
                 <div className="mt-4 space-y-2">
                   <Label htmlFor={`scroll-cost-${index}`}>
-                    Scroll Cost (Mesos)
+                    {scroll.name} Cost (Mesos)
                   </Label>
                   <Input
                     id={`scroll-cost-${index}`}
-                    type="number"
+                    type="text"
                     placeholder="Enter cost in mesos"
+                    onChange={(e) => {
+                      const newValue = e.target.value.replace(/[^0-9]/g, '');
+                      e.target.value = formatNumber(newValue);
+                    }}
                   />
                 </div>
               </div>

@@ -34,7 +34,7 @@ export const StepConfigurator = ({
         {
           scroll: null,
           onSuccess: steps.length === item.slots - 1 ? "stop" : "next",
-          onFailure: "next",
+          onFailure: steps.length === item.slots - 1 ? "stop" : "next",
         },
       ]);
     }
@@ -123,6 +123,7 @@ export const StepConfigurator = ({
                   onValueChange={(value: "next" | "stop") =>
                     updateStep(index, { onFailure: value })
                   }
+                  disabled={index === steps.length - 1}
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue />
@@ -165,6 +166,7 @@ export const StepConfigurator = ({
           onClick={onStart}
           disabled={disabled || steps.some((step) => !step.scroll)}
           className="ml-auto"
+          variant="default"
         >
           Start Simulation
         </Button>
