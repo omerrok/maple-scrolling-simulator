@@ -26,7 +26,7 @@ export const SimulationResults = ({
                 Outcome {outcome.successfulSteps}/{outcome.steps} Success
               </h3>
               <span className="text-maple-text/60">
-                {outcome.count} times
+                {outcome.count.toLocaleString()} times
               </span>
             </div>
 
@@ -45,8 +45,13 @@ export const SimulationResults = ({
               </Label>
               <Input
                 id={`outcome-value-${outcome.id}`}
-                type="number"
+                type="text"
                 placeholder="Enter value in mesos"
+                onChange={(e) => {
+                  // Format the number with commas
+                  const value = e.target.value.replace(/[^\d]/g, '');
+                  e.target.value = value ? parseInt(value).toLocaleString() : '';
+                }}
               />
             </div>
           </div>

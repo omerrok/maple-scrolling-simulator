@@ -5,7 +5,7 @@ import { ScrollSelector } from "./ScrollSelector";
 import { StepConfigurator } from "./StepConfigurator";
 import { SimulationResults } from "./SimulationResults";
 import { CostAnalysis } from "./CostAnalysis";
-import { Item, Scroll, ScrollingStep, SimulationOutcome } from "@/types/maple";
+import { Item, Scroll, ScrollingStep, SimulationOutcome, ItemStats } from "@/types/maple";
 import { useToast } from "@/hooks/use-toast";
 
 const SIMULATION_COUNT = 10000;
