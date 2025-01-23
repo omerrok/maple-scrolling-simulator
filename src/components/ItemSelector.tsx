@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Item, Scroll } from "@/types/maple";
 import { X } from "lucide-react";
+import { items } from "@/data/mapleData";
 
 interface ItemSelectorProps {
   selectedItem: Item | null;
@@ -17,27 +18,16 @@ interface ItemSelectorProps {
   selectedScrolls: Scroll[];
 }
 
-// Temporary mock data - replace with CSV data
-const mockItems: Item[] = [
-  {
-    id: "1",
-    name: "White Scroll",
-    type: "scroll",
-    slots: 1,
-    stats: { watk: 5 },
-  },
-];
-
 export const ItemSelector = ({
   selectedItem,
   onSelect,
   selectedScrolls,
 }: ItemSelectorProps) => {
   const filteredItems = selectedScrolls.length > 0
-    ? mockItems.filter(item => 
+    ? items.filter(item => 
         selectedScrolls.some(scroll => scroll.type === item.type)
       )
-    : mockItems;
+    : items;
 
   return (
     <div className="space-y-4">
@@ -56,7 +46,7 @@ export const ItemSelector = ({
       <Select
         value={selectedItem?.id}
         onValueChange={(value) => {
-          const item = mockItems.find((i) => i.id === value);
+          const item = items.find((i) => i.id === value);
           onSelect(item || null);
         }}
       >

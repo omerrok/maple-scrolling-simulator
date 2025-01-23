@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Item, Scroll } from "@/types/maple";
 import { X } from "lucide-react";
+import { scrolls } from "@/data/mapleData";
 
 interface ScrollSelectorProps {
   selectedScrolls: Scroll[];
@@ -17,28 +18,17 @@ interface ScrollSelectorProps {
   selectedItem: Item | null;
 }
 
-// Temporary mock data - replace with CSV data
-const mockScrolls: Scroll[] = [
-  {
-    id: "1",
-    name: "Scroll for Weapon for ATT 60%",
-    type: "weapon",
-    success: 0.6,
-    effects: { watk: 5 },
-  },
-];
-
 export const ScrollSelector = ({
   selectedScrolls,
   onSelect,
   selectedItem,
 }: ScrollSelectorProps) => {
   const filteredScrolls = selectedItem
-    ? mockScrolls.filter(scroll => scroll.type === selectedItem.type)
-    : mockScrolls;
+    ? scrolls.filter(scroll => scroll.type === selectedItem.type)
+    : scrolls;
 
   const handleScrollSelect = (scrollId: string) => {
-    const scroll = mockScrolls.find(s => s.id === scrollId);
+    const scroll = scrolls.find(s => s.id === scrollId);
     if (scroll && !selectedScrolls.find(s => s.id === scroll.id)) {
       onSelect([...selectedScrolls, scroll]);
     }
