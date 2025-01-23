@@ -6,6 +6,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Item, Scroll, ItemStats } from "@/types/maple";
@@ -37,9 +44,18 @@ export const ItemSelector = ({
       )
     : items;
 
+  const getDefaultStats = (stats: ItemStats) => {
+    return Object.entries(stats)
+      .filter(([_, value]) => value !== 0)
+      .reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: value
+      }), {});
+  };
+
   const availableStats = AVAILABLE_STATS.filter(stat => 
-    !selectedItem?.stats[stat as keyof ItemStats] && 
-    !additionalStats.includes(stat)
+    !selectedItem?.stats[stat as keyof ItemStats] || 
+    selectedItem?.stats[stat as keyof ItemStats] === 0
   );
 
   return (
@@ -88,7 +104,7 @@ export const ItemSelector = ({
       {selectedItem && (
         <div className="space-y-4 animate-in">
           <div className="grid grid-cols-2 gap-4">
-            {Object.entries(selectedItem.stats).map(([stat, value]) => (
+            {Object.entries(getDefaultStats(selectedItem.stats)).map(([stat, value]) => (
               <div key={stat} className="space-y-2">
                 <Label htmlFor={`stat-${stat}`}>
                   {stat.toUpperCase()}
@@ -123,26 +139,29 @@ export const ItemSelector = ({
           </div>
 
           {availableStats.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const select = window.prompt(
-                  "Select a stat to add:\n" + 
-                  availableStats.map((s, i) => `${i + 1}. ${s.toUpperCase()}`).join('\n')
-                );
-                if (select) {
-                  const index = parseInt(select) - 1;
-                  if (availableStats[index]) {
-                    setAdditionalStats([...additionalStats, availableStats[index]]);
-                  }
-                }
-              }}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Stat
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Stat
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Available Stats</DropdownMenuLabel>
+                {availableStats.map((stat) => (
+                  <DropdownMenuItem
+                    key={stat}
+                    onClick={() => setAdditionalStats([...additionalStats, stat])}
+                  >
+                    {stat.toUpperCase()}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           
           <div className="space-y-2">

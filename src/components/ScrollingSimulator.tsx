@@ -16,6 +16,7 @@ export const ScrollingSimulator = () => {
   const [steps, setSteps] = useState<ScrollingStep[]>([]);
   const [outcomes, setOutcomes] = useState<SimulationOutcome[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationComplete, setSimulationComplete] = useState(false);
   const { toast } = useToast();
 
   const simulateScrolling = (item: Item, steps: ScrollingStep[]): ItemStats => {
@@ -26,7 +27,11 @@ export const ScrollingSimulator = () => {
       const step = steps[currentStep];
       if (!step.scroll) break;
 
-      const success = Math.random() < step.scroll.success;
+      // Generate a random number between 0 and 1
+      const roll = Math.random();
+      // Compare against the success rate (e.g., 0.1 for 10%)
+      const success = roll < step.scroll.success;
+
       if (success) {
         // Apply scroll effects
         Object.entries(step.scroll.effects).forEach(([stat, value]) => {
@@ -49,6 +54,7 @@ export const ScrollingSimulator = () => {
     if (!selectedItem || steps.length === 0) return;
 
     setIsSimulating(true);
+    setSimulationComplete(false);
     setOutcomes([]);
 
     let simulationResults: { [key: string]: SimulationOutcome } = {};
@@ -79,6 +85,7 @@ export const ScrollingSimulator = () => {
         requestAnimationFrame(runBatch);
       } else {
         setIsSimulating(false);
+        setSimulationComplete(true);
         toast({
           title: "Simulation Complete",
           description: `Completed ${SIMULATION_COUNT} simulations with ${Object.keys(simulationResults).length} unique outcomes.`
@@ -134,7 +141,7 @@ export const ScrollingSimulator = () => {
           </Card>
         )}
 
-        {isSimulating && (
+        {(isSimulating || simulationComplete) && (
           <Card className="p-6 glass-panel slide-up">
             <h2 className="text-2xl font-medium text-maple-text mb-6">
               Simulation Results
