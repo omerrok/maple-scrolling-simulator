@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Item, Scroll, ItemStats } from "@/types/maple";
 import { X, Plus } from "lucide-react";
 import { items } from "@/data/mapleData";
-import { formatNumber } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { ItemStatInput } from "./ItemStatInput";
+import { formatStatName } from "@/lib/statNames";
 
 const AVAILABLE_STATS = [
   "str", "dex", "int", "luk", "watk", "matk", "def", "mdef",
@@ -50,31 +51,20 @@ export const ItemSelector = ({
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const getDefaultStats = (stats: ItemStats) => {
-    return Object.entries(stats)
-      .filter(([_, value]) => value !== 0)
-      .reduce((acc, [key, value]) => ({
-        ...acc,
-        [key]: value
-      }), {});
-  };
-
-  const handleStatChange = (stat: string, value: string) => {
-    const numValue = value ? parseInt(value.replace(/[^\d]/g, '')) : 0;
+  const handleStatChange = (stat: string, value: number) => {
     setItemStats(prev => ({
       ...prev,
-      [stat]: numValue
+      [stat]: value
     }));
     
     if (selectedItem) {
-      const updatedItem = {
+      onSelect({
         ...selectedItem,
         stats: {
           ...selectedItem.stats,
-          [stat]: numValue
+          [stat]: value
         }
-      };
-      onSelect(updatedItem);
+      });
     }
   };
 
@@ -106,7 +96,7 @@ export const ItemSelector = ({
       
       <Select
         value={selectedItem?.id || ""}
-        onValueChange={(value) => {
+        onValueChange={(value: string) => {
           const item = items.find((i) => i.id === value);
           onSelect(item || null);
         }}
@@ -119,7 +109,6 @@ export const ItemSelector = ({
             <Input
               type="text"
               placeholder="Search items..."
-              className="mb-2"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -144,48 +133,30 @@ export const ItemSelector = ({
       {selectedItem && (
         <div className="space-y-4 animate-in">
           <div className="grid grid-cols-2 gap-4">
-            {Object.entries(getDefaultStats(selectedItem.stats)).map(([stat, value]) => (
-              <div key={stat} className="space-y-2">
-                <Label htmlFor={`stat-${stat}`}>
-                  {stat.toUpperCase()}
-                </Label>
-                <Input
-                  id={`stat-${stat}`}
-                  type="text"
-                  value={formatNumber(itemStats[stat as keyof ItemStats] || value)}
-                  onChange={(e) => {
-                    const newValue = e.target.value.replace(/[^\d]/g, '');
-                    handleStatChange(stat, newValue);
-                  }}
+            {Object.entries(selectedItem.stats)
+              .filter(([_, value]) => value !== 0)
+              .map(([stat, value]) => (
+                <ItemStatInput
+                  key={stat}
+                  stat={stat}
+                  value={itemStats[stat as keyof ItemStats] || value}
+                  onChange={handleStatChange}
                 />
-              </div>
-            ))}
+              ))}
             {additionalStats.map(stat => (
-              <div key={stat} className="space-y-2">
-                <Label htmlFor={`stat-${stat}`}>
-                  {stat.toUpperCase()}
-                </Label>
-                <Input
-                  id={`stat-${stat}`}
-                  type="text"
-                  value={formatNumber(itemStats[stat as keyof ItemStats] || 0)}
-                  onChange={(e) => {
-                    const newValue = e.target.value.replace(/[^\d]/g, '');
-                    handleStatChange(stat, newValue);
-                  }}
-                />
-              </div>
+              <ItemStatInput
+                key={stat}
+                stat={stat}
+                value={itemStats[stat as keyof ItemStats] || 0}
+                onChange={handleStatChange}
+              />
             ))}
           </div>
 
           {availableStats.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
+                <Button variant="outline" size="sm" className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Stat
                 </Button>
@@ -197,25 +168,12 @@ export const ItemSelector = ({
                     key={stat}
                     onClick={() => setAdditionalStats([...additionalStats, stat])}
                   >
-                    {stat.toUpperCase()}
+                    {formatStatName(stat)}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="item-cost">Item Cost (Mesos)</Label>
-            <Input
-              id="item-cost"
-              type="text"
-              placeholder="Enter cost in mesos"
-              onChange={(e) => {
-                const value = e.target.value.replace(/[^\d]/g, '');
-                e.target.value = formatNumber(value);
-              }}
-            />
-          </div>
         </div>
       )}
     </div>

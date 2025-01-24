@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Item, Scroll, SimulationOutcome } from "@/types/maple";
 import { formatNumber } from "@/lib/utils";
+import { formatStatName } from "@/lib/statNames";
 
 interface CostAnalysisProps {
   item: Item | null;
@@ -47,27 +48,15 @@ export const CostAnalysis = ({
   const averageValue = selectedOutcome ? selectedOutcomesTotalValue / selectedOutcomesTotalCount : 0;
   const averageProfit = averageValue - averageCost;
 
+  const formatOutcomeTitle = (outcome: SimulationOutcome): string => {
+    return Object.entries(outcome.finalStats)
+      .filter(([_, value]) => value !== 0)
+      .map(([stat, value]) => `${value} ${formatStatName(stat)}`)
+      .join(", ");
+  };
+
   return (
     <div className="space-y-6">
-      <Select
-        value={selectedOutcomeId || ""}
-        onValueChange={setSelectedOutcomeId}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select outcome to analyze" />
-        </SelectTrigger>
-        <SelectContent>
-          {sortedOutcomes.map((outcome) => (
-            <SelectItem key={outcome.id} value={outcome.id}>
-              {Object.entries(outcome.finalStats)
-                .filter(([_, value]) => value !== 0)
-                .map(([stat, value]) => `${value} ${stat.toUpperCase()}`)
-                .join(", ")}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="p-4 glass-panel">
           <h3 className="font-medium mb-2">Total Cost</h3>
@@ -83,6 +72,22 @@ export const CostAnalysis = ({
           </p>
         </Card>
       </div>
+
+      <Select
+        value={selectedOutcomeId || ""}
+        onValueChange={setSelectedOutcomeId}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select outcome to analyze" />
+        </SelectTrigger>
+        <SelectContent>
+          {sortedOutcomes.map((outcome) => (
+            <SelectItem key={outcome.id} value={outcome.id}>
+              {formatOutcomeTitle(outcome)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {selectedOutcome && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
