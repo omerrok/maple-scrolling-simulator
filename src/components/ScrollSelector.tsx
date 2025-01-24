@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Item, Scroll } from "@/types/maple";
 import { X } from "lucide-react";
-import { scrolls } from "@/data/mapleData";
+import { fetchScrolls } from "@/lib/googleSheets";
 import { formatNumber } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ScrollSelectorProps {
   selectedScrolls: Scroll[];
@@ -25,6 +26,24 @@ export const ScrollSelector = ({
   selectedItem,
 }: ScrollSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [scrolls, setScrolls] = useState<Scroll[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadScrolls = async () => {
+      try {
+        const fetchedScrolls = await fetchScrolls();
+        setScrolls(fetchedScrolls);
+      } catch (error) {
+        toast({
+          title: "Error loading scrolls",
+          description: "Failed to load scrolls from Google Sheets",
+          variant: "destructive",
+        });
+      }
+    };
+    loadScrolls();
+  }, [toast]);
 
   const filteredScrolls = scrolls
     .filter(scroll => 
@@ -43,6 +62,19 @@ export const ScrollSelector = ({
 
   const handleScrollRemove = (scrollId: string) => {
     onSelect(selectedScrolls.filter(s => s.id !== scrollId));
+  };
+
+  const handleCostChange = (scrollId: string, value: string) => {
+    const updatedScrolls = selectedScrolls.map(scroll => {
+      if (scroll.id === scrollId) {
+        return {
+          ...scroll,
+          cost: parseInt(value.replace(/[^\d]/g, '')) || 0
+        };
+      }
+      return scroll;
+    });
+    onSelect(updatedScrolls);
   };
 
   return (
@@ -92,10 +124,8 @@ export const ScrollSelector = ({
                   id={`scroll-cost-${index}`}
                   type="text"
                   placeholder="Enter cost in mesos"
-                  onChange={(e) => {
-                    const newValue = e.target.value.replace(/[^\d]/g, '');
-                    e.target.value = formatNumber(newValue);
-                  }}
+                  value={formatNumber(scroll.cost?.toString() || "")}
+                  onChange={(e) => handleCostChange(scroll.id, e.target.value)}
                 />
               </div>
               <button

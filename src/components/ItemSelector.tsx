@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -18,9 +18,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Item, Scroll, ItemStats } from "@/types/maple";
 import { X, Plus } from "lucide-react";
-import { items } from "@/data/mapleData";
 import { ItemStatInput } from "./ItemStatInput";
 import { formatStatName } from "@/lib/statNames";
+import { fetchItems } from "@/lib/googleSheets";
+import { useToast } from "@/hooks/use-toast";
 
 const AVAILABLE_STATS = [
   "str", "dex", "int", "luk", "watk", "matk", "def", "mdef",
@@ -41,6 +42,25 @@ export const ItemSelector = ({
   const [additionalStats, setAdditionalStats] = useState<string[]>([]);
   const [itemStats, setItemStats] = useState<ItemStats>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [items, setItems] = useState<Item[]>([]);
+  const [itemCost, setItemCost] = useState<string>("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        const fetchedItems = await fetchItems();
+        setItems(fetchedItems);
+      } catch (error) {
+        toast({
+          title: "Error loading items",
+          description: "Failed to load items from Google Sheets",
+          variant: "destructive",
+        });
+      }
+    };
+    loadItems();
+  }, [toast]);
 
   const filteredItems = items
     .filter(item => 
@@ -68,6 +88,16 @@ export const ItemSelector = ({
     }
   };
 
+  const handleCostChange = (value: string) => {
+    setItemCost(value);
+    if (selectedItem) {
+      onSelect({
+        ...selectedItem,
+        cost: parseInt(value) || 0
+      });
+    }
+  };
+
   const availableStats = AVAILABLE_STATS.filter(stat => 
     !selectedItem?.stats[stat as keyof ItemStats] || 
     selectedItem?.stats[stat as keyof ItemStats] === 0
@@ -76,6 +106,7 @@ export const ItemSelector = ({
   React.useEffect(() => {
     if (selectedItem) {
       setItemStats(selectedItem.stats);
+      setItemCost(selectedItem.cost?.toString() || "");
       setAdditionalStats([]);
     }
   }, [selectedItem]);
@@ -132,6 +163,17 @@ export const ItemSelector = ({
 
       {selectedItem && (
         <div className="space-y-4 animate-in">
+          <div className="space-y-2">
+            <Label htmlFor="item-cost">Item Cost (Mesos)</Label>
+            <Input
+              id="item-cost"
+              type="text"
+              placeholder="Enter item cost"
+              value={itemCost}
+              onChange={(e) => handleCostChange(e.target.value)}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(selectedItem.stats)
               .filter(([_, value]) => value !== 0)
