@@ -38,6 +38,7 @@ export const ItemSelector = ({
   selectedScrolls,
 }: ItemSelectorProps) => {
   const [additionalStats, setAdditionalStats] = useState<string[]>([]);
+  const [itemStats, setItemStats] = useState<ItemStats>({});
   const filteredItems = selectedScrolls.length > 0
     ? items.filter(item => 
         selectedScrolls.some(scroll => scroll.type === item.type)
@@ -53,10 +54,36 @@ export const ItemSelector = ({
       }), {});
   };
 
+  const handleStatChange = (stat: string, value: string) => {
+    const numValue = value ? parseInt(value.replace(/[^\d]/g, '')) : 0;
+    setItemStats(prev => ({
+      ...prev,
+      [stat]: numValue
+    }));
+    
+    if (selectedItem) {
+      const updatedItem = {
+        ...selectedItem,
+        stats: {
+          ...selectedItem.stats,
+          [stat]: numValue
+        }
+      };
+      onSelect(updatedItem);
+    }
+  };
+
   const availableStats = AVAILABLE_STATS.filter(stat => 
     !selectedItem?.stats[stat as keyof ItemStats] || 
     selectedItem?.stats[stat as keyof ItemStats] === 0
   );
+
+  React.useEffect(() => {
+    if (selectedItem) {
+      setItemStats(selectedItem.stats);
+      setAdditionalStats([]);
+    }
+  }, [selectedItem]);
 
   return (
     <div className="space-y-4">
@@ -73,17 +100,26 @@ export const ItemSelector = ({
       </div>
       
       <Select
-        value={selectedItem?.id}
+        value={selectedItem?.id || ""}
         onValueChange={(value) => {
           const item = items.find((i) => i.id === value);
           onSelect(item || null);
-          setAdditionalStats([]);
         }}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select item" />
         </SelectTrigger>
         <SelectContent>
+          <div className="p-2">
+            <Input
+              type="text"
+              placeholder="Search items..."
+              className="mb-2"
+              onChange={(e) => {
+                // Implement search filtering
+              }}
+            />
+          </div>
           {filteredItems.map((item) => (
             <SelectItem key={item.id} value={item.id}>
               <div className="flex items-center gap-2">
@@ -112,10 +148,10 @@ export const ItemSelector = ({
                 <Input
                   id={`stat-${stat}`}
                   type="text"
-                  value={formatNumber(value)}
+                  value={formatNumber(itemStats[stat as keyof ItemStats] || value)}
                   onChange={(e) => {
-                    const newValue = e.target.value.replace(/[^0-9]/g, '');
-                    // Implement stat override logic
+                    const newValue = e.target.value.replace(/[^\d]/g, '');
+                    handleStatChange(stat, newValue);
                   }}
                 />
               </div>
@@ -128,10 +164,10 @@ export const ItemSelector = ({
                 <Input
                   id={`stat-${stat}`}
                   type="text"
-                  defaultValue="0"
+                  value={formatNumber(itemStats[stat as keyof ItemStats] || 0)}
                   onChange={(e) => {
-                    const newValue = e.target.value.replace(/[^0-9]/g, '');
-                    // Implement stat override logic
+                    const newValue = e.target.value.replace(/[^\d]/g, '');
+                    handleStatChange(stat, newValue);
                   }}
                 />
               </div>
@@ -171,8 +207,8 @@ export const ItemSelector = ({
               type="text"
               placeholder="Enter cost in mesos"
               onChange={(e) => {
-                const newValue = e.target.value.replace(/[^0-9]/g, '');
-                e.target.value = formatNumber(newValue);
+                const value = e.target.value.replace(/[^\d]/g, '');
+                e.target.value = formatNumber(value);
               }}
             />
           </div>

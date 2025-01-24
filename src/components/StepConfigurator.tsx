@@ -7,8 +7,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Item, Scroll, ScrollingStep } from "@/types/maple";
 import { Plus, Minus } from "lucide-react";
+import { formatNumber } from "@/lib/utils";
 
 interface StepConfiguratorProps {
   item: Item;
@@ -17,6 +20,8 @@ interface StepConfiguratorProps {
   onStepsChange: (steps: ScrollingStep[]) => void;
   onStart: () => void;
   disabled: boolean;
+  simulationRuns: number;
+  onSimulationRunsChange: (runs: number) => void;
 }
 
 export const StepConfigurator = ({
@@ -26,6 +31,8 @@ export const StepConfigurator = ({
   onStepsChange,
   onStart,
   disabled,
+  simulationRuns,
+  onSimulationRunsChange,
 }: StepConfiguratorProps) => {
   const addStep = () => {
     if (steps.length < item.slots) {
@@ -34,7 +41,7 @@ export const StepConfigurator = ({
         {
           scroll: null,
           onSuccess: steps.length === item.slots - 1 ? "stop" : "next",
-          onFailure: steps.length === item.slots - 1 ? "stop" : "next",
+          onFailure: "stop",
         },
       ]);
     }
@@ -58,12 +65,17 @@ export const StepConfigurator = ({
       onStepsChange([
         {
           scroll: scrolls.length === 1 ? scrolls[0] : null,
-          onSuccess: "stop",
-          onFailure: "next",
+          onSuccess: "next",
+          onFailure: "stop",
         },
       ]);
     }
   }, []);
+
+  const handleSimulationRunsChange = (value: string) => {
+    const runs = Math.min(Math.max(parseInt(value) || 0, 1), 10000);
+    onSimulationRunsChange(runs);
+  };
 
   return (
     <div className="space-y-6">
@@ -150,26 +162,42 @@ export const StepConfigurator = ({
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
-        {steps.length < item.slots && (
-          <Button
-            variant="outline"
-            onClick={addStep}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Step
-          </Button>
-        )}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="simulation-runs">Simulation Runs</Label>
+          <Input
+            id="simulation-runs"
+            type="text"
+            value={formatNumber(simulationRuns)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^\d]/g, '');
+              handleSimulationRunsChange(value);
+            }}
+            className="w-full"
+          />
+        </div>
 
-        <Button
-          onClick={onStart}
-          disabled={disabled || steps.some((step) => !step.scroll)}
-          className="ml-auto"
-          variant="default"
-        >
-          Start Simulation
-        </Button>
+        <div className="flex items-center justify-between">
+          {steps.length < item.slots && (
+            <Button
+              variant="outline"
+              onClick={addStep}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Step
+            </Button>
+          )}
+
+          <Button
+            onClick={onStart}
+            disabled={disabled || steps.some((step) => !step.scroll)}
+            className="ml-auto"
+            variant="default"
+          >
+            Start Simulation
+          </Button>
+        </div>
       </div>
     </div>
   );
