@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Item, Scroll, SimulationOutcome } from "@/types/maple";
 import { formatNumber } from "@/lib/utils";
 
@@ -16,18 +17,57 @@ export const CostAnalysis = ({
   outcomes,
   visible
 }: CostAnalysisProps) => {
+  const [selectedOutcomeId, setSelectedOutcomeId] = useState<string | null>(null);
+
   if (!visible || !item) return null;
 
-  const totalCost = scrolls.reduce((acc, scroll) => acc + (scroll.cost || 0), 0) + (item.cost || 0);
-  const totalValue = outcomes.reduce((acc, outcome) => acc + (outcome.value || 0) * outcome.count, 0);
   const totalRuns = outcomes.reduce((acc, outcome) => acc + outcome.count, 0);
-  
-  const averageCost = totalRuns > 0 ? totalCost / totalRuns : 0;
-  const averageValue = totalRuns > 0 ? totalValue / totalRuns : 0;
+  const sortedOutcomes = [...outcomes].sort((a, b) => 
+    Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0) -
+    Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0)
+  );
+
+  const selectedOutcome = sortedOutcomes.find(o => o.id === selectedOutcomeId);
+  const betterOutcomes = selectedOutcome 
+    ? sortedOutcomes.slice(0, sortedOutcomes.findIndex(o => o.id === selectedOutcomeId) + 1)
+    : [];
+
+  const totalCost = totalRuns * (item.cost || 0) + 
+    outcomes.reduce((acc, outcome) => 
+      acc + outcome.steps * (scrolls[0]?.cost || 0) * outcome.count, 0);
+
+  const totalValue = outcomes.reduce((acc, outcome) => 
+    acc + (outcome.value || 0) * outcome.count, 0);
+
+  const selectedOutcomesTotalCount = betterOutcomes.reduce((acc, o) => acc + o.count, 0);
+  const selectedOutcomesTotalValue = betterOutcomes.reduce((acc, o) => 
+    acc + (o.value || 0) * o.count, 0);
+
+  const averageCost = selectedOutcome ? totalCost / selectedOutcomesTotalCount : 0;
+  const averageValue = selectedOutcome ? selectedOutcomesTotalValue / selectedOutcomesTotalCount : 0;
   const averageProfit = averageValue - averageCost;
 
   return (
     <div className="space-y-6">
+      <Select
+        value={selectedOutcomeId || ""}
+        onValueChange={setSelectedOutcomeId}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select outcome to analyze" />
+        </SelectTrigger>
+        <SelectContent>
+          {sortedOutcomes.map((outcome) => (
+            <SelectItem key={outcome.id} value={outcome.id}>
+              {Object.entries(outcome.finalStats)
+                .filter(([_, value]) => value !== 0)
+                .map(([stat, value]) => `${value} ${stat.toUpperCase()}`)
+                .join(", ")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="p-4 glass-panel">
           <h3 className="font-medium mb-2">Total Cost</h3>
@@ -44,28 +84,30 @@ export const CostAnalysis = ({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 glass-panel">
-          <h3 className="font-medium mb-2">Average Cost</h3>
-          <p className="text-xl font-semibold">
-            {formatNumber(averageCost)} mesos
-          </p>
-        </Card>
+      {selectedOutcome && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4 glass-panel">
+            <h3 className="font-medium mb-2">Average Cost</h3>
+            <p className="text-xl font-semibold">
+              {formatNumber(averageCost)} mesos
+            </p>
+          </Card>
 
-        <Card className="p-4 glass-panel">
-          <h3 className="font-medium mb-2">Average Value</h3>
-          <p className="text-xl font-semibold">
-            {formatNumber(averageValue)} mesos
-          </p>
-        </Card>
+          <Card className="p-4 glass-panel">
+            <h3 className="font-medium mb-2">Average Value</h3>
+            <p className="text-xl font-semibold">
+              {formatNumber(averageValue)} mesos
+            </p>
+          </Card>
 
-        <Card className="p-4 glass-panel">
-          <h3 className="font-medium mb-2">Average Profit</h3>
-          <p className={`text-xl font-semibold ${averageProfit >= 0 ? 'text-maple-success' : 'text-maple-error'}`}>
-            {formatNumber(averageProfit)} mesos
-          </p>
-        </Card>
-      </div>
+          <Card className="p-4 glass-panel">
+            <h3 className="font-medium mb-2">Average Profit</h3>
+            <p className={`text-xl font-semibold ${averageProfit >= 0 ? 'text-maple-success' : 'text-maple-error'}`}>
+              {formatNumber(averageProfit)} mesos
+            </p>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

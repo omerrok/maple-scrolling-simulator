@@ -12,10 +12,27 @@ interface SimulationResultsProps {
   onCalculateProfit: () => void;
 }
 
+const statDisplayNames: { [key: string]: string } = {
+  watk: "Weapon Attack",
+  matk: "Magic Attack",
+  def: "Weapon Defense",
+  mdef: "Magic Defense",
+  acc: "Accuracy",
+  avoid: "Avoidability",
+  speed: "Speed",
+  jump: "Jump",
+  str: "STR",
+  dex: "DEX",
+  int: "INT",
+  luk: "LUK",
+  hp: "HP",
+  mp: "MP"
+};
+
 const formatOutcomeTitle = (stats: ItemStats): string => {
   return Object.entries(stats)
     .filter(([_, value]) => value !== 0)
-    .map(([stat, value]) => `${value} ${stat.toUpperCase()}`)
+    .map(([stat, value]) => `${value} ${statDisplayNames[stat] || stat.toUpperCase()}`)
     .join(", ");
 };
 
@@ -31,9 +48,13 @@ export const SimulationResults = ({
 }: SimulationResultsProps) => {
   const [outcomeValues, setOutcomeValues] = useState<{ [key: string]: number }>({});
 
-  const sortedOutcomes = [...outcomes].sort((a, b) => 
-    calculateTotalValue(a.finalStats) - calculateTotalValue(b.finalStats)
-  );
+  const totalRuns = outcomes.reduce((sum, outcome) => sum + outcome.count, 0);
+  const sortedOutcomes = [...outcomes]
+    .map(outcome => ({
+      ...outcome,
+      percentage: (outcome.count / totalRuns) * 100
+    }))
+    .sort((a, b) => calculateTotalValue(a.finalStats) - calculateTotalValue(b.finalStats));
 
   return (
     <div className="space-y-6">
@@ -48,19 +69,8 @@ export const SimulationResults = ({
                 {formatOutcomeTitle(outcome.finalStats)}
               </h3>
               <span className="text-maple-text/60">
-                {outcome.count.toLocaleString()} times
+                {outcome.count.toLocaleString()} times ({outcome.percentage?.toFixed(2)}%)
               </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(outcome.finalStats)
-                .filter(([_, value]) => value !== 0)
-                .map(([stat, value]) => (
-                  <div key={stat} className="text-sm">
-                    <span className="text-maple-text/60">{stat.toUpperCase()}:</span>{" "}
-                    <span className="font-medium">{value}</span>
-                  </div>
-                ))}
             </div>
 
             <div className="space-y-2">

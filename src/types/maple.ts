@@ -5,6 +5,7 @@ export interface Item {
   slots: number;
   stats: ItemStats;
   imageUrl?: string;
+  cost?: number;
 }
 
 export interface ItemStats {
@@ -31,6 +32,7 @@ export interface Scroll {
   success: number;
   effects: ScrollEffects;
   imageUrl?: string;
+  cost?: number;
 }
 
 export interface ScrollEffects {
@@ -62,4 +64,6 @@ export interface SimulationOutcome {
   successfulSteps: number;
   finalStats: ItemStats;
   count: number;
+  value?: number;
+  percentage?: number;
 }
