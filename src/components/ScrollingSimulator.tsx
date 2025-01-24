@@ -8,8 +8,6 @@ import { CostAnalysis } from "./CostAnalysis";
 import { Item, Scroll, ScrollingStep, SimulationOutcome, ItemStats } from "@/types/maple";
 import { useToast } from "@/hooks/use-toast";
 
-const SIMULATION_COUNT = 10000;
-
 export const ScrollingSimulator = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedScrolls, setSelectedScrolls] = useState<Scroll[]>([]);
@@ -17,6 +15,8 @@ export const ScrollingSimulator = () => {
   const [outcomes, setOutcomes] = useState<SimulationOutcome[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationComplete, setSimulationComplete] = useState(false);
+  const [simulationRuns, setSimulationRuns] = useState(10000);
+  const [showCostAnalysis, setShowCostAnalysis] = useState(false);
   const { toast } = useToast();
 
   const simulateScrolling = (item: Item, steps: ScrollingStep[]): ItemStats => {
@@ -56,13 +56,14 @@ export const ScrollingSimulator = () => {
     setIsSimulating(true);
     setSimulationComplete(false);
     setOutcomes([]);
+    setShowCostAnalysis(false);
 
     let simulationResults: { [key: string]: SimulationOutcome } = {};
     let completedSimulations = 0;
 
     const runBatch = () => {
       const batchSize = 100;
-      for (let i = 0; i < batchSize && completedSimulations < SIMULATION_COUNT; i++) {
+      for (let i = 0; i < batchSize && completedSimulations < simulationRuns; i++) {
         const finalStats = simulateScrolling(selectedItem, steps);
         const outcomeKey = JSON.stringify(finalStats);
 
@@ -81,14 +82,14 @@ export const ScrollingSimulator = () => {
 
       setOutcomes(Object.values(simulationResults));
 
-      if (completedSimulations < SIMULATION_COUNT) {
+      if (completedSimulations < simulationRuns) {
         requestAnimationFrame(runBatch);
       } else {
         setIsSimulating(false);
         setSimulationComplete(true);
         toast({
           title: "Simulation Complete",
-          description: `Completed ${SIMULATION_COUNT} simulations with ${Object.keys(simulationResults).length} unique outcomes.`
+          description: `Completed ${simulationRuns} simulations with ${Object.keys(simulationResults).length} unique outcomes.`
         });
       }
     };
@@ -98,6 +99,10 @@ export const ScrollingSimulator = () => {
 
   const handleStopSimulation = () => {
     setIsSimulating(false);
+  };
+
+  const handleCalculateProfit = () => {
+    setShowCostAnalysis(true);
   };
 
   return (
@@ -137,6 +142,8 @@ export const ScrollingSimulator = () => {
               onStepsChange={setSteps}
               onStart={handleStartSimulation}
               disabled={isSimulating}
+              simulationRuns={simulationRuns}
+              onSimulationRunsChange={setSimulationRuns}
             />
           </Card>
         )}
@@ -149,11 +156,13 @@ export const ScrollingSimulator = () => {
             <SimulationResults
               outcomes={outcomes}
               onStop={handleStopSimulation}
+              isComplete={simulationComplete}
+              onCalculateProfit={handleCalculateProfit}
             />
           </Card>
         )}
 
-        {outcomes.length > 0 && (
+        {showCostAnalysis && (
           <Card className="p-6 glass-panel slide-up">
             <h2 className="text-2xl font-medium text-maple-text mb-6">
               Cost Analysis
@@ -162,6 +171,7 @@ export const ScrollingSimulator = () => {
               item={selectedItem}
               scrolls={selectedScrolls}
               outcomes={outcomes}
+              visible={showCostAnalysis}
             />
           </Card>
         )}
