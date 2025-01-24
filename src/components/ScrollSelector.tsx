@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -24,9 +24,15 @@ export const ScrollSelector = ({
   onSelect,
   selectedItem,
 }: ScrollSelectorProps) => {
-  const filteredScrolls = selectedItem
-    ? scrolls.filter(scroll => scroll.type === selectedItem.type)
-    : scrolls;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredScrolls = scrolls
+    .filter(scroll => 
+      !selectedItem || scroll.type === selectedItem.type
+    )
+    .filter(scroll => 
+      scroll.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const handleScrollSelect = (scrollId: string) => {
     const scroll = scrolls.find(s => s.id === scrollId);
@@ -53,9 +59,8 @@ export const ScrollSelector = ({
               type="text"
               placeholder="Search scrolls..."
               className="mb-2"
-              onChange={(e) => {
-                // Implement search filtering
-              }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           {filteredScrolls.map((scroll) => (

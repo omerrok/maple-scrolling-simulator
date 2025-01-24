@@ -39,11 +39,16 @@ export const ItemSelector = ({
 }: ItemSelectorProps) => {
   const [additionalStats, setAdditionalStats] = useState<string[]>([]);
   const [itemStats, setItemStats] = useState<ItemStats>({});
-  const filteredItems = selectedScrolls.length > 0
-    ? items.filter(item => 
-        selectedScrolls.some(scroll => scroll.type === item.type)
-      )
-    : items;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredItems = items
+    .filter(item => 
+      selectedScrolls.length === 0 || 
+      selectedScrolls.some(scroll => scroll.type === item.type)
+    )
+    .filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const getDefaultStats = (stats: ItemStats) => {
     return Object.entries(stats)
@@ -115,9 +120,8 @@ export const ItemSelector = ({
               type="text"
               placeholder="Search items..."
               className="mb-2"
-              onChange={(e) => {
-                // Implement search filtering
-              }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           {filteredItems.map((item) => (
