@@ -22,6 +22,7 @@ import { ItemStatInput } from "./ItemStatInput";
 import { formatStatName } from "@/lib/statNames";
 import { fetchItems } from "@/lib/googleSheets";
 import { useToast } from "@/hooks/use-toast";
+import { formatNumber } from "@/lib/utils";
 
 const AVAILABLE_STATS = [
   "str", "dex", "int", "luk", "watk", "matk", "def", "mdef",
@@ -44,6 +45,7 @@ export const ItemSelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [itemCost, setItemCost] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,6 +73,12 @@ export const ItemSelector = ({
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+  const handleItemSelect = (value: string) => {
+    const item = items.find((i) => i.id === value);
+    onSelect(item || null);
+    setIsOpen(false);
+  };
+
   const handleStatChange = (stat: string, value: number) => {
     setItemStats(prev => ({
       ...prev,
@@ -93,7 +101,7 @@ export const ItemSelector = ({
     if (selectedItem) {
       onSelect({
         ...selectedItem,
-        cost: parseInt(value) || 0
+        cost: parseInt(value.replace(/[^\d]/g, '')) || 0
       });
     }
   };
@@ -127,10 +135,9 @@ export const ItemSelector = ({
       
       <Select
         value={selectedItem?.id || ""}
-        onValueChange={(value: string) => {
-          const item = items.find((i) => i.id === value);
-          onSelect(item || null);
-        }}
+        onValueChange={handleItemSelect}
+        open={isOpen}
+        onOpenChange={setIsOpen}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select item" />
@@ -142,6 +149,7 @@ export const ItemSelector = ({
               placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-2"
             />
           </div>
           {filteredItems.map((item) => (
@@ -169,7 +177,7 @@ export const ItemSelector = ({
               id="item-cost"
               type="text"
               placeholder="Enter item cost"
-              value={itemCost}
+              value={formatNumber(itemCost)}
               onChange={(e) => handleCostChange(e.target.value)}
             />
           </div>
