@@ -34,18 +34,21 @@ export const CostAnalysis = ({
     : [];
 
   const calculateTotalCost = () => {
-    const itemCost = (item.cost || 0) * totalRuns;
-    const scrollCost = outcomes.reduce((acc, outcome) => {
-      const stepCosts = outcome.steps * outcome.count;
-      const avgScrollCost = scrolls.reduce((sum, scroll) => sum + (scroll.cost || 0), 0) / scrolls.length;
-      return acc + (stepCosts * avgScrollCost);
+    return outcomes.reduce((acc, outcome) => {
+      const itemCostForRuns = (item.cost || 0) * outcome.count;
+      const scrollCostForSteps = outcome.successfulSteps * (scrolls[0]?.cost || 0) * outcome.count;
+      return acc + itemCostForRuns + scrollCostForSteps;
     }, 0);
-    return itemCost + scrollCost;
+  };
+
+  const calculateTotalValue = () => {
+    return outcomes.reduce((acc, outcome) => 
+      acc + (outcome.value || 0) * outcome.count, 0
+    );
   };
 
   const totalCost = calculateTotalCost();
-  const totalValue = outcomes.reduce((acc, outcome) => 
-    acc + (outcome.value || 0) * outcome.count, 0);
+  const totalValue = calculateTotalValue();
 
   const selectedOutcomesTotalCount = betterOutcomes.reduce((acc, o) => acc + o.count, 0);
   const selectedOutcomesTotalValue = betterOutcomes.reduce((acc, o) => 

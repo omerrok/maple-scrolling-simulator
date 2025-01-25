@@ -8,13 +8,15 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Item, Scroll } from "@/types/maple";
-import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Item, Scroll, ItemStats } from "@/types/maple";
+import { X, Plus } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { ItemStatInput } from "./ItemStatInput";
 import { SearchInput } from "./SearchInput";
 import { ItemImage } from "./ItemImage";
 import { sampleItems } from "@/lib/sampleData";
+import { statDisplayNames } from "@/lib/statNames";
 
 interface ItemSelectorProps {
   selectedItem: Item | null;
@@ -30,6 +32,8 @@ export const ItemSelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [itemCost, setItemCost] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
+  const [editedStats, setEditedStats] = useState<ItemStats>({});
+  const [showStatSelector, setShowStatSelector] = useState(false);
 
   const filteredItems = sampleItems
     .filter(item => 
@@ -45,10 +49,13 @@ export const ItemSelector = ({
     if (item) {
       onSelect({
         ...item,
-        cost: parseInt(itemCost.replace(/[^\d]/g, '')) || 0
+        cost: parseInt(itemCost.replace(/[^\d]/g, '')) || 0,
+        stats: { ...item.stats }
       });
+      setEditedStats(item.stats);
     } else {
       onSelect(null);
+      setEditedStats({});
     }
     setIsOpen(false);
   };
@@ -63,11 +70,39 @@ export const ItemSelector = ({
     }
   };
 
+  const handleStatChange = (stat: string, value: number) => {
+    if (selectedItem) {
+      const newStats = { ...selectedItem.stats, [stat]: value };
+      onSelect({
+        ...selectedItem,
+        stats: newStats
+      });
+      setEditedStats(newStats);
+    }
+  };
+
+  const handleAddStat = (stat: string) => {
+    if (selectedItem) {
+      const newStats = { ...selectedItem.stats, [stat]: 0 };
+      onSelect({
+        ...selectedItem,
+        stats: newStats
+      });
+      setEditedStats(newStats);
+      setShowStatSelector(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedItem) {
       setItemCost(selectedItem.cost?.toString() || "");
+      setEditedStats(selectedItem.stats);
     }
   }, [selectedItem]);
+
+  const availableStats = Object.keys(statDisplayNames).filter(
+    stat => !selectedItem?.stats[stat as keyof ItemStats]
+  );
 
   return (
     <div className="space-y-4">
@@ -131,16 +166,44 @@ export const ItemSelector = ({
 
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(selectedItem.stats)
-              .filter(([_, value]) => value !== 0)
+              .filter(([_, value]) => value !== undefined)
               .map(([stat, value]) => (
                 <ItemStatInput
                   key={stat}
                   stat={stat}
                   value={value}
-                  onChange={() => {}}
+                  onChange={handleStatChange}
                 />
               ))}
           </div>
+
+          {availableStats.length > 0 && (
+            <div className="space-y-2">
+              {showStatSelector ? (
+                <Select onValueChange={handleAddStat}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select stat to add" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStats.map(stat => (
+                      <SelectItem key={stat} value={stat}>
+                        {statDisplayNames[stat]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowStatSelector(true)}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Stat
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

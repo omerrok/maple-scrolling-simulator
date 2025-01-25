@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SimulationOutcome, ItemStats } from "@/types/maple";
+import { SimulationOutcome } from "@/types/maple";
 import { formatNumber } from "@/lib/utils";
+import { formatStatName } from "@/lib/statNames";
 
 interface SimulationResultsProps {
   outcomes: SimulationOutcome[];
@@ -11,34 +12,6 @@ interface SimulationResultsProps {
   isComplete: boolean;
   onCalculateProfit: () => void;
 }
-
-const statDisplayNames: { [key: string]: string } = {
-  watk: "Weapon Attack",
-  matk: "Magic Attack",
-  def: "Weapon Defense",
-  mdef: "Magic Defense",
-  acc: "Accuracy",
-  avoid: "Avoidability",
-  speed: "Speed",
-  jump: "Jump",
-  str: "STR",
-  dex: "DEX",
-  int: "INT",
-  luk: "LUK",
-  hp: "HP",
-  mp: "MP"
-};
-
-const formatOutcomeTitle = (stats: ItemStats): string => {
-  return Object.entries(stats)
-    .filter(([_, value]) => value !== 0)
-    .map(([stat, value]) => `${value} ${statDisplayNames[stat] || stat.toUpperCase()}`)
-    .join(", ");
-};
-
-const calculateTotalValue = (stats: ItemStats): number => {
-  return Object.values(stats).reduce((sum, value) => sum + (value || 0), 0);
-};
 
 export const SimulationResults = ({
   outcomes,
@@ -50,11 +23,35 @@ export const SimulationResults = ({
 
   const totalRuns = outcomes.reduce((sum, outcome) => sum + outcome.count, 0);
   const sortedOutcomes = [...outcomes]
+    .sort((a, b) => {
+      const aTotal = Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0);
+      const bTotal = Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0);
+      return bTotal - aTotal;
+    })
     .map(outcome => ({
       ...outcome,
       percentage: (outcome.count / totalRuns) * 100
-    }))
-    .sort((a, b) => calculateTotalValue(a.finalStats) - calculateTotalValue(b.finalStats));
+    }));
+
+  useEffect(() => {
+    const updatedOutcomes = outcomes.map(outcome => ({
+      ...outcome,
+      value: outcomeValues[outcome.id] || 0
+    }));
+    
+    if (JSON.stringify(updatedOutcomes) !== JSON.stringify(outcomes)) {
+      outcomes.forEach(outcome => {
+        outcome.value = outcomeValues[outcome.id] || 0;
+      });
+    }
+  }, [outcomeValues, outcomes]);
+
+  const formatOutcomeTitle = (stats: SimulationOutcome['finalStats']): string => {
+    return Object.entries(stats)
+      .filter(([_, value]) => value !== 0)
+      .map(([stat, value]) => `${value} ${formatStatName(stat)}`)
+      .join(", ");
+  };
 
   return (
     <div className="space-y-6">
