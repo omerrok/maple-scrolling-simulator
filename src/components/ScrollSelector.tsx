@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Item, Scroll } from "@/types/maple";
 import { X } from "lucide-react";
-import { fetchScrolls } from "@/lib/googleSheets";
 import { formatNumber } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { SearchInput } from "./SearchInput";
+import { ItemImage } from "./ItemImage";
+import { sampleScrolls } from "@/lib/sampleData";
 
 interface ScrollSelectorProps {
   selectedScrolls: Scroll[];
@@ -26,27 +27,9 @@ export const ScrollSelector = ({
   selectedItem,
 }: ScrollSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [scrolls, setScrolls] = useState<Scroll[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
 
-  useEffect(() => {
-    const loadScrolls = async () => {
-      try {
-        const fetchedScrolls = await fetchScrolls();
-        setScrolls(fetchedScrolls);
-      } catch (error) {
-        toast({
-          title: "Error loading scrolls",
-          description: "Failed to load scrolls from Google Sheets",
-          variant: "destructive",
-        });
-      }
-    };
-    loadScrolls();
-  }, [toast]);
-
-  const filteredScrolls = scrolls
+  const filteredScrolls = sampleScrolls
     .filter(scroll => 
       !selectedItem || scroll.type === selectedItem.type
     )
@@ -55,7 +38,7 @@ export const ScrollSelector = ({
     );
 
   const handleScrollSelect = (scrollId: string) => {
-    const scroll = scrolls.find(s => s.id === scrollId);
+    const scroll = sampleScrolls.find(s => s.id === scrollId);
     if (scroll && !selectedScrolls.find(s => s.id === scroll.id)) {
       onSelect([...selectedScrolls, scroll]);
     }
@@ -92,25 +75,15 @@ export const ScrollSelector = ({
           <SelectValue placeholder="Select scroll" />
         </SelectTrigger>
         <SelectContent>
-          <div className="p-2">
-            <Input
-              type="text"
-              placeholder="Search scrolls..."
-              className="mb-2"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search scrolls..."
+          />
           {filteredScrolls.map((scroll) => (
             <SelectItem key={scroll.id} value={scroll.id}>
               <div className="flex items-center gap-2">
-                {scroll.imageUrl && (
-                  <img
-                    src={scroll.imageUrl}
-                    alt={scroll.name}
-                    className="w-6 h-6 object-contain"
-                  />
-                )}
+                <ItemImage imageUrl={scroll.imageUrl} name={scroll.name} />
                 <span>{scroll.name}</span>
               </div>
             </SelectItem>
@@ -120,14 +93,13 @@ export const ScrollSelector = ({
 
       {selectedScrolls.length > 0 && (
         <div className="space-y-4 animate-in">
-          {selectedScrolls.map((scroll, index) => (
+          {selectedScrolls.map((scroll) => (
             <div key={scroll.id} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
               <div className="flex-1 space-y-2">
-                <Label htmlFor={`scroll-cost-${index}`}>
+                <Label>
                   {scroll.name} Cost (Mesos)
                 </Label>
                 <Input
-                  id={`scroll-cost-${index}`}
                   type="text"
                   placeholder="Enter cost in mesos"
                   value={formatNumber(scroll.cost?.toString() || "")}

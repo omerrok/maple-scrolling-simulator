@@ -6,28 +6,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Item, Scroll, ItemStats } from "@/types/maple";
-import { X, Plus } from "lucide-react";
-import { ItemStatInput } from "./ItemStatInput";
-import { formatStatName } from "@/lib/statNames";
-import { fetchItems } from "@/lib/googleSheets";
-import { useToast } from "@/hooks/use-toast";
+import { Item, Scroll } from "@/types/maple";
+import { X } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
-
-const AVAILABLE_STATS = [
-  "str", "dex", "int", "luk", "watk", "matk", "def", "mdef",
-  "hp", "mp", "acc", "avoid", "speed", "jump"
-] as const;
+import { ItemStatInput } from "./ItemStatInput";
+import { SearchInput } from "./SearchInput";
+import { ItemImage } from "./ItemImage";
+import { sampleItems } from "@/lib/sampleData";
 
 interface ItemSelectorProps {
   selectedItem: Item | null;
@@ -40,31 +27,11 @@ export const ItemSelector = ({
   onSelect,
   selectedScrolls,
 }: ItemSelectorProps) => {
-  const [additionalStats, setAdditionalStats] = useState<string[]>([]);
-  const [itemStats, setItemStats] = useState<ItemStats>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [items, setItems] = useState<Item[]>([]);
   const [itemCost, setItemCost] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
 
-  useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const fetchedItems = await fetchItems();
-        setItems(fetchedItems);
-      } catch (error) {
-        toast({
-          title: "Error loading items",
-          description: "Failed to load items from Google Sheets",
-          variant: "destructive",
-        });
-      }
-    };
-    loadItems();
-  }, [toast]);
-
-  const filteredItems = items
+  const filteredItems = sampleItems
     .filter(item => 
       selectedScrolls.length === 0 || 
       selectedScrolls.some(scroll => scroll.type === item.type)
@@ -74,26 +41,16 @@ export const ItemSelector = ({
     );
 
   const handleItemSelect = (value: string) => {
-    const item = items.find((i) => i.id === value);
-    onSelect(item || null);
-    setIsOpen(false);
-  };
-
-  const handleStatChange = (stat: string, value: number) => {
-    setItemStats(prev => ({
-      ...prev,
-      [stat]: value
-    }));
-    
-    if (selectedItem) {
+    const item = sampleItems.find((i) => i.id === value);
+    if (item) {
       onSelect({
-        ...selectedItem,
-        stats: {
-          ...selectedItem.stats,
-          [stat]: value
-        }
+        ...item,
+        cost: parseInt(itemCost.replace(/[^\d]/g, '')) || 0
       });
+    } else {
+      onSelect(null);
     }
+    setIsOpen(false);
   };
 
   const handleCostChange = (value: string) => {
@@ -106,16 +63,9 @@ export const ItemSelector = ({
     }
   };
 
-  const availableStats = AVAILABLE_STATS.filter(stat => 
-    !selectedItem?.stats[stat as keyof ItemStats] || 
-    selectedItem?.stats[stat as keyof ItemStats] === 0
-  );
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedItem) {
-      setItemStats(selectedItem.stats);
       setItemCost(selectedItem.cost?.toString() || "");
-      setAdditionalStats([]);
     }
   }, [selectedItem]);
 
@@ -140,28 +90,25 @@ export const ItemSelector = ({
         onOpenChange={setIsOpen}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select item" />
+          <SelectValue placeholder="Select item">
+            {selectedItem && (
+              <div className="flex items-center gap-2">
+                <ItemImage imageUrl={selectedItem.imageUrl} name={selectedItem.name} />
+                <span>{selectedItem.name}</span>
+              </div>
+            )}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <div className="p-2">
-            <Input
-              type="text"
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="mb-2"
-            />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search items..."
+          />
           {filteredItems.map((item) => (
             <SelectItem key={item.id} value={item.id}>
               <div className="flex items-center gap-2">
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-6 h-6 object-contain"
-                  />
-                )}
+                <ItemImage imageUrl={item.imageUrl} name={item.name} />
                 <span>{item.name}</span>
               </div>
             </SelectItem>
@@ -189,41 +136,11 @@ export const ItemSelector = ({
                 <ItemStatInput
                   key={stat}
                   stat={stat}
-                  value={itemStats[stat as keyof ItemStats] || value}
-                  onChange={handleStatChange}
+                  value={value}
+                  onChange={() => {}}
                 />
               ))}
-            {additionalStats.map(stat => (
-              <ItemStatInput
-                key={stat}
-                stat={stat}
-                value={itemStats[stat as keyof ItemStats] || 0}
-                onChange={handleStatChange}
-              />
-            ))}
           </div>
-
-          {availableStats.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Stat
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Available Stats</DropdownMenuLabel>
-                {availableStats.map((stat) => (
-                  <DropdownMenuItem
-                    key={stat}
-                    onClick={() => setAdditionalStats([...additionalStats, stat])}
-                  >
-                    {formatStatName(stat)}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
       )}
     </div>
