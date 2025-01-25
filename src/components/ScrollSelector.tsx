@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -13,8 +13,7 @@ import { X } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { SearchInput } from "./SearchInput";
 import { ItemImage } from "./ItemImage";
-import { fetchScrolls } from "@/lib/googleSheets";
-import { useQuery } from "@tanstack/react-query";
+import { sampleScrolls } from "@/lib/sampleData";
 
 interface ScrollSelectorProps {
   selectedScrolls: Scroll[];
@@ -30,12 +29,7 @@ export const ScrollSelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: scrolls = [] } = useQuery({
-    queryKey: ['scrolls'],
-    queryFn: fetchScrolls,
-  });
-
-  const filteredScrolls = scrolls
+  const filteredScrolls = sampleScrolls
     .filter(scroll => 
       !selectedItem || scroll.type === selectedItem.type
     )
@@ -44,7 +38,7 @@ export const ScrollSelector = ({
     );
 
   const handleScrollSelect = (scrollId: string) => {
-    const scroll = scrolls.find(s => s.id === scrollId);
+    const scroll = sampleScrolls.find(s => s.id === scrollId);
     if (scroll && !selectedScrolls.find(s => s.id === scroll.id)) {
       onSelect([...selectedScrolls, scroll]);
     }

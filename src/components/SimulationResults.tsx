@@ -26,7 +26,7 @@ export const SimulationResults = ({
     .sort((a, b) => {
       const aTotal = Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0);
       const bTotal = Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0);
-      return aTotal - bTotal;
+      return bTotal - aTotal;
     })
     .map(outcome => ({
       ...outcome,
