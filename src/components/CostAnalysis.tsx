@@ -24,8 +24,8 @@ export const CostAnalysis = ({
 
   const totalRuns = outcomes.reduce((acc, outcome) => acc + outcome.count, 0);
   const sortedOutcomes = [...outcomes].sort((a, b) => 
-    Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0) -
-    Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0)
+    Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0) -
+    Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0)
   );
 
   const selectedOutcome = sortedOutcomes.find(o => o.id === selectedOutcomeId);
@@ -34,11 +34,15 @@ export const CostAnalysis = ({
     : [];
 
   const calculateTotalCost = () => {
-    return outcomes.reduce((acc, outcome) => {
-      const itemCostForRuns = (item.cost || 0) * outcome.count;
-      const scrollCostForSteps = outcome.successfulSteps * (scrolls[0]?.cost || 0) * outcome.count;
-      return acc + itemCostForRuns + scrollCostForSteps;
+    const baseItemCost = (item.cost || 0) * totalRuns;
+    
+    const totalScrollCost = outcomes.reduce((acc, outcome) => {
+      // For each outcome, calculate the cost of scrolls used
+      const scrollCostForOutcome = outcome.successfulSteps * (scrolls[0]?.cost || 0);
+      return acc + (scrollCostForOutcome * outcome.count);
     }, 0);
+
+    return baseItemCost + totalScrollCost;
   };
 
   const calculateTotalValue = () => {
