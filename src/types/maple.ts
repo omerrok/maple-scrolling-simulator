@@ -56,6 +56,7 @@ export interface ScrollingStep {
   scroll: Scroll | null;
   onSuccess: "next" | "stop";
   onFailure: "next" | "stop";
+  failureLimit: number;
 }
 
 export interface SimulationOutcome {

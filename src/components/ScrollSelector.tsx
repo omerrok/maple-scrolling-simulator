@@ -27,6 +27,7 @@ export const ScrollSelector = ({
 }: ScrollSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolls, setScrolls] = useState<Scroll[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export const ScrollSelector = ({
     if (scroll && !selectedScrolls.find(s => s.id === scroll.id)) {
       onSelect([...selectedScrolls, scroll]);
     }
+    setIsOpen(false);
   };
 
   const handleScrollRemove = (scrollId: string) => {
@@ -81,7 +83,11 @@ export const ScrollSelector = ({
     <div className="space-y-4">
       <Label>Select Scrolls</Label>
       
-      <Select onValueChange={handleScrollSelect}>
+      <Select 
+        open={isOpen} 
+        onOpenChange={setIsOpen}
+        onValueChange={handleScrollSelect}
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select scroll" />
         </SelectTrigger>

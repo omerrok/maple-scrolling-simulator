@@ -22,6 +22,7 @@ export const ScrollingSimulator = () => {
   const simulateScrolling = (item: Item, steps: ScrollingStep[]): ItemStats => {
     let currentStats = { ...item.stats };
     let currentStep = 0;
+    let failures = 0;
 
     while (currentStep < steps.length) {
       const step = steps[currentStep];
@@ -42,6 +43,11 @@ export const ScrollingSimulator = () => {
         if (step.onSuccess === "stop") break;
         currentStep++;
       } else {
+        failures++;
+        // Check failure limit
+        if (step.failureLimit > 0 && failures >= step.failureLimit) {
+          break;
+        }
         if (step.onFailure === "stop") break;
         currentStep++;
       }

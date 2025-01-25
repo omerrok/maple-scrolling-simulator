@@ -42,6 +42,7 @@ export const StepConfigurator = ({
           scroll: null,
           onSuccess: steps.length === item.slots - 1 ? "stop" : "next",
           onFailure: "stop",
+          failureLimit: 0,
         },
       ]);
     }
@@ -60,13 +61,13 @@ export const StepConfigurator = ({
   };
 
   React.useEffect(() => {
-    // Initialize with one step when item is selected
     if (steps.length === 0) {
       onStepsChange([
         {
           scroll: scrolls.length === 1 ? scrolls[0] : null,
           onSuccess: "next",
           onFailure: "stop",
+          failureLimit: 0,
         },
       ]);
     }
@@ -145,6 +146,25 @@ export const StepConfigurator = ({
                     <SelectItem value="stop">Stop</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <span className="text-sm text-maple-text/60">Failure Limit:</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max={index + 1}
+                  value={step.failureLimit}
+                  onChange={(e) => {
+                    const value = Math.min(
+                      Math.max(parseInt(e.target.value) || 0, 0),
+                      index + 1
+                    );
+                    updateStep(index, { failureLimit: value });
+                  }}
+                  className="w-24"
+                  placeholder="0"
+                />
               </div>
             </div>
 
