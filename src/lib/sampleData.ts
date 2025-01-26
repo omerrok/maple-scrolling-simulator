@@ -6,24 +6,37 @@ export const sampleItems: Item[] = [
     name: "Blue Cotton Robe",
     type: "overall",
     slots: 7,
-    stats: { def: 10 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1050039/icon"
+    stats: { 
+      def: 10,
+      mdef: 5,
+      hp: 15
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1050039/icon",
+    cost: 50000
   },
   {
     id: "2",
     name: "Blue Jean",
     type: "bottom",
     slots: 5,
-    stats: { def: 5 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1060057/icon"
+    stats: { 
+      def: 5,
+      hp: 10
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1060057/icon",
+    cost: 35000
   },
   {
     id: "3",
     name: "White Bandana",
     type: "hat",
     slots: 5,
-    stats: { def: 3 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1002019/icon"
+    stats: { 
+      def: 3,
+      int: 1
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/1002019/icon",
+    cost: 25000
   }
 ];
 
@@ -33,23 +46,35 @@ export const sampleScrolls: Scroll[] = [
     name: "Overall DEF 60%",
     type: "overall",
     success: 0.6,
-    effects: { def: 2 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040000/icon"
+    effects: { 
+      def: 2,
+      mdef: 1
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040000/icon",
+    cost: 15000
   },
   {
     id: "2",
     name: "Bottom DEF 10%",
     type: "bottom",
     success: 0.1,
-    effects: { def: 5 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040100/icon"
+    effects: { 
+      def: 5,
+      hp: 15
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040100/icon",
+    cost: 50000
   },
   {
     id: "3",
-    name: "Hat DEF 30%",
+    name: "Hat INT 30%",
     type: "hat",
     success: 0.3,
-    effects: { def: 3 },
-    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040200/icon"
+    effects: { 
+      int: 2,
+      mp: 15
+    },
+    imageUrl: "https://maplestory.io/api/GMS/210.1.1/item/2040200/icon",
+    cost: 35000
   }
 ];

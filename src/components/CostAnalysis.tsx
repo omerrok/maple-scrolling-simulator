@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Item, Scroll, SimulationOutcome } from "@/types/maple";
 import { formatNumber } from "@/lib/utils";
 import { formatStatName } from "@/lib/statNames";
+import { ItemImage } from "./ItemImage";
 
 interface CostAnalysisProps {
   item: Item | null;
@@ -24,8 +25,8 @@ export const CostAnalysis = ({
 
   const totalRuns = outcomes.reduce((acc, outcome) => acc + outcome.count, 0);
   const sortedOutcomes = [...outcomes].sort((a, b) => 
-    Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0) -
-    Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0)
+    Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0) -
+    Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0)
   );
 
   const selectedOutcome = sortedOutcomes.find(o => o.id === selectedOutcomeId);
@@ -34,11 +35,15 @@ export const CostAnalysis = ({
     : [];
 
   const calculateTotalCost = () => {
-    return outcomes.reduce((acc, outcome) => {
-      const itemCostForRuns = (item.cost || 0) * outcome.count;
-      const scrollCostForSteps = outcome.successfulSteps * (scrolls[0]?.cost || 0) * outcome.count;
-      return acc + itemCostForRuns + scrollCostForSteps;
+    const itemCost = (item.cost || 0) * totalRuns;
+    const scrollCosts = scrolls.reduce((acc, scroll) => {
+      const scrollUsage = outcomes.reduce((total, outcome) => {
+        const stepsWithThisScroll = outcome.steps * (outcome.count || 0);
+        return total + stepsWithThisScroll;
+      }, 0);
+      return acc + (scroll.cost || 0) * scrollUsage;
     }, 0);
+    return itemCost + scrollCosts;
   };
 
   const calculateTotalValue = () => {
@@ -93,7 +98,10 @@ export const CostAnalysis = ({
         <SelectContent>
           {sortedOutcomes.map((outcome) => (
             <SelectItem key={outcome.id} value={outcome.id}>
-              {formatOutcomeTitle(outcome)}
+              <div className="flex items-center gap-2">
+                {item && <ItemImage imageUrl={item.imageUrl} name={item.name} />}
+                <span>{formatOutcomeTitle(outcome)}</span>
+              </div>
             </SelectItem>
           ))}
         </SelectContent>

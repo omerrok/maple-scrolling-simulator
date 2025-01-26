@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Item, Scroll, ScrollingStep } from "@/types/maple";
 import { Plus, Minus } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
+import { ItemImage } from "./ItemImage";
 
 interface StepConfiguratorProps {
   item: Item;
@@ -98,12 +99,22 @@ export const StepConfigurator = ({
               }}
             >
               <SelectTrigger className="w-64">
-                <SelectValue placeholder="Choose scroll" />
+                <SelectValue>
+                  {step.scroll && (
+                    <div className="flex items-center gap-2">
+                      <ItemImage imageUrl={step.scroll.imageUrl} name={step.scroll.name} />
+                      <span>{step.scroll.name}</span>
+                    </div>
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {scrolls.map((scroll) => (
                   <SelectItem key={scroll.id} value={scroll.id}>
-                    {scroll.name}
+                    <div className="flex items-center gap-2">
+                      <ItemImage imageUrl={scroll.imageUrl} name={scroll.name} />
+                      <span>{scroll.name}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
