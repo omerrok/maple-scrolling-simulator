@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SimulationOutcome } from "@/types/maple";
+import { SimulationOutcome, Item } from "@/types/maple";
 import { formatNumber } from "@/lib/utils";
 import { formatStatName } from "@/lib/statNames";
+import { ItemImage } from "./ItemImage";
 
 interface SimulationResultsProps {
   outcomes: SimulationOutcome[];
   onStop: () => void;
   isComplete: boolean;
   onCalculateProfit: () => void;
+  item: Item | null;
 }
 
 export const SimulationResults = ({
@@ -18,6 +20,7 @@ export const SimulationResults = ({
   onStop,
   isComplete,
   onCalculateProfit,
+  item,
 }: SimulationResultsProps) => {
   const [outcomeValues, setOutcomeValues] = useState<{ [key: string]: number }>({});
 
@@ -26,7 +29,7 @@ export const SimulationResults = ({
     .sort((a, b) => {
       const aTotal = Object.values(a.finalStats).reduce((sum, val) => sum + (val || 0), 0);
       const bTotal = Object.values(b.finalStats).reduce((sum, val) => sum + (val || 0), 0);
-      return bTotal - aTotal;
+      return aTotal - bTotal; // Changed to ascending order
     })
     .map(outcome => ({
       ...outcome,
@@ -61,13 +64,16 @@ export const SimulationResults = ({
             key={outcome.id}
             className="p-4 bg-white rounded-lg shadow-sm space-y-4 animate-in"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">
-                {formatOutcomeTitle(outcome.finalStats)}
-              </h3>
-              <span className="text-maple-text/60">
-                {outcome.count.toLocaleString()} times ({outcome.percentage?.toFixed(2)}%)
-              </span>
+            <div className="flex items-center gap-4">
+              {item && <ItemImage imageUrl={item.imageUrl} name={item.name} />}
+              <div className="flex-1">
+                <h3 className="font-medium">
+                  {formatOutcomeTitle(outcome.finalStats)}
+                </h3>
+                <span className="text-maple-text/60">
+                  {outcome.count.toLocaleString()} times ({outcome.percentage?.toFixed(2)}%)
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">

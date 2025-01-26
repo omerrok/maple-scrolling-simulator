@@ -35,14 +35,20 @@ export const CostAnalysis = ({
     : [];
 
   const calculateTotalCost = () => {
+    // Base item cost for all simulation runs
     const itemCost = (item.cost || 0) * totalRuns;
+    
+    // Calculate scroll costs based on usage
     const scrollCosts = scrolls.reduce((acc, scroll) => {
+      // Count total steps taken with this scroll across all outcomes
       const scrollUsage = outcomes.reduce((total, outcome) => {
-        const stepsWithThisScroll = outcome.steps * (outcome.count || 0);
+        const stepsWithThisScroll = outcome.steps.filter(step => step.scroll?.id === scroll.id).length * outcome.count;
         return total + stepsWithThisScroll;
       }, 0);
+      
       return acc + (scroll.cost || 0) * scrollUsage;
     }, 0);
+
     return itemCost + scrollCosts;
   };
 
