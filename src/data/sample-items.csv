@@ -1,0 +1,4 @@
+id,name,type,slots,str,dex,int,luk,watk,matk,def,mdef,hp,mp,acc,avoid,speed,jump,imageUrl,cost
+1,Maple Warrior Shield,shield,7,0,0,0,0,0,0,15,0,0,0,0,0,0,0,/items/maple-warrior-shield.png,1000000
+2,Dark Ritual Staff,staff,5,0,0,5,0,0,33,0,0,0,0,0,0,0,0,/items/dark-ritual-staff.png,2500000
+3,Dragon Axe,axe,7,0,0,0,0,43,0,0,0,0,0,0,0,0,0,/items/dragon-axe.png,3000000

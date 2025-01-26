@@ -76,7 +76,7 @@ export const ScrollingSimulator = () => {
         if (!simulationResults[outcomeKey]) {
           simulationResults[outcomeKey] = {
             id: outcomeKey,
-            steps: steps.length,
+            steps: steps,
             successfulSteps: Object.keys(finalStats).length - Object.keys(selectedItem.stats).length,
             finalStats,
             count: 0
@@ -164,6 +164,7 @@ export const ScrollingSimulator = () => {
               onStop={handleStopSimulation}
               isComplete={simulationComplete}
               onCalculateProfit={handleCalculateProfit}
+              item={selectedItem}
             />
           </Card>
         )}

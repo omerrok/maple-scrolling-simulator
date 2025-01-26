@@ -61,7 +61,7 @@ export interface ScrollingStep {
 
 export interface SimulationOutcome {
   id: string;
-  steps: number;
+  steps: ScrollingStep[];  // Changed from number to ScrollingStep[]
   successfulSteps: number;
   finalStats: ItemStats;
   count: number;
